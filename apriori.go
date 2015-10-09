@@ -12,14 +12,16 @@ type candidate struct {
 	UpdatedAt int
 }
 
+// Apriori algorithm, mining frequent item sets out of an array of transactions
+// minSupport: set the lower limit under which the items' sets are considerated not frequent
 func apriori(transactions []mapset.Set, minSupport float64) (large []candidate) {
+	// Initial empty frontier set to start the first iteration
 	frontier := []candidate{
 		candidate{
 			Items: mapset.NewThreadUnsafeSet(),
 			Count: len(transactions),
 		},
 	}
-	fmt.Printf("Loaded %d transactions\n", len(transactions))
 
 	run := 0
 	for len(frontier) > 0 {
@@ -42,6 +44,8 @@ func apriori(transactions []mapset.Set, minSupport float64) (large []candidate) 
 		for _, c := range candidates {
 			if float64(c.Count)/float64(len(transactions)) >= minSupport {
 				large = append(large, c)
+
+				// TODO: As extend should be recursive this should be more complex than just checking for the minSupport.
 				frontier = append(frontier, c)
 			}
 		}
@@ -50,16 +54,14 @@ func apriori(transactions []mapset.Set, minSupport float64) (large []candidate) 
 	return
 }
 
+// Update the count of the set to insert if found and not updated during the current iteration or insert it
 func upsert(large []candidate, c mapset.Set, position int) []candidate {
 	for k, v := range large {
-		// Find the candidate in the large set
 		if v.Items.Equal(c) {
-			// found and not updated already ? update count
 			if v.UpdatedAt < position {
 				large[k].Count++
 				large[k].UpdatedAt = position
 			}
-
 			return large
 		}
 	}

@@ -10,6 +10,8 @@ type rule struct {
 	Lift        float64
 }
 
+// Generate association rules from an array of frequent item sets
+// minConfidence: set the lower limit under which the rules are not considerated relevant
 func generateRules(frequentItemSets []candidate, dbsize int, minConfidence float64) (rules []rule) {
 	for _, set := range frequentItemSets {
 		for _, s := range set.Items.PowerSet().ToSlice() {
@@ -17,6 +19,7 @@ func generateRules(frequentItemSets []candidate, dbsize int, minConfidence float
 				consequentsSet := set.Items.Difference(antecedentsSet)
 				antecedents, consequents := findSets(frequentItemSets, antecedentsSet, consequentsSet)
 
+				// Calculate the metrics
 				ruleSupport := float64(set.Count) / float64(dbsize)
 				antecedentSupport := float64(antecedents.Count) / float64(dbsize)
 				consequentSupport := float64(consequents.Count) / float64(dbsize)
@@ -38,6 +41,7 @@ func generateRules(frequentItemSets []candidate, dbsize int, minConfidence float
 	return
 }
 
+// Find the antecedent and consequent frequent itemSets
 func findSets(frequentItemSets []candidate, antecedents, consequents mapset.Set) (a, c candidate) {
 	for _, cs := range frequentItemSets {
 		if cs.Items.Equal(consequents) {

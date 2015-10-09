@@ -8,6 +8,8 @@ func main() {
 		fmt.Printf("%+v\n", err)
 	}
 
+	fmt.Printf("Loaded %d transactions\n", len(transactions))
+
 	frequentItemSets := apriori(transactions, 0.5)
 
 	rules := generateRules(frequentItemSets, len(transactions), 1.)
