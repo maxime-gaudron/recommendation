@@ -4,9 +4,27 @@
 
 ## Utilisation
 
-The output format is CSV, comma separated.
-The paths are currently hardcoded ./data.csv and ./output.csv.
-The minSupport and minConfidence are currently hardcoded too, change the values in main.go
+```
+NAME:
+   recommendation - generate association rules using a list of transactions
+
+USAGE:
+   ./recommendation [global options] command [command options] [arguments...]
+
+VERSION:
+   0.0.0
+
+COMMANDS:
+   help, h	Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --inputFile "data.csv"	transaction data, comma separated
+   --outputFile "output.csv"	output file path containing association rules
+   --minSupport "0.002"		Minimum support to consider an item set frequent
+   --minConfidence "1"		Minimum confidence to consider an association rule
+   --help, -h			show help
+   --version, -v		print the version
+```
 
 **Input file format:**
 ```csv
@@ -14,7 +32,7 @@ A,C,T,W
 C,D,W
 A,C,T,W
 ```
-Each line is a transaction.
+Each line represent a transaction.
 
 **Output file format:**
 ```csv

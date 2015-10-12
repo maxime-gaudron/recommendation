@@ -41,8 +41,8 @@ func parseCsv(file string) ([]mapset.Set, error) {
 	}
 }
 
-func toCsv(rules []rule) {
-	f, err := os.Create("./output.csv")
+func toCsv(file string, rules []rule) {
+	f, err := os.Create(file)
 	if err != nil {
 		log.Fatalln("error opening file:", err)
 	}
