@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -33,6 +34,7 @@ func parseCsv(file string) ([]mapset.Set, error) {
 		}
 
 		t := mapset.NewThreadUnsafeSet()
+		sort.Strings(row)
 		for _, r := range row {
 			t.Add(r)
 		}
