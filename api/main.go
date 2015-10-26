@@ -17,6 +17,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type byConfidence []rule
+
+func (s byConfidence) Len() int {
+	return len(s)
+}
+func (s byConfidence) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byConfidence) Less(i, j int) bool {
+	return s[i].Confidence < s[j].Confidence
+}
+
 var rules map[string][]rule
 
 func main() {
@@ -24,6 +36,10 @@ func main() {
 	data, err := parseCsv("./output.csv")
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	for k := range data {
+		sort.Sort(sort.Reverse(byConfidence(data[k])))
 	}
 
 	rules = data
@@ -55,7 +71,15 @@ func recommand(w http.ResponseWriter, r *http.Request) {
 		data = []rule{}
 	}
 
-	js, err := json.Marshal(data)
+	limit, err := strconv.ParseInt(r.FormValue("limit"), 10, 64)
+	if err != nil {
+		limit = 10
+	}
+	if int(limit) > len(data) {
+		limit = int64(len(data))
+	}
+
+	js, err := json.Marshal(data[:limit])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -124,7 +148,6 @@ func parseCsv(file string) (map[string][]rule, error) {
 		}
 
 		key := strings.Join(antecedents, "")
-		fmt.Printf("%+v\n", key)
 		rules[key] = append(rules[key], r)
 	}
 }
