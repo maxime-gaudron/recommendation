@@ -2,95 +2,52 @@ package main
 
 import (
 	"fmt"
-	"sort"
-	"strings"
 
 	"github.com/deckarep/golang-set"
 )
 
 type candidate struct {
-	Items     mapset.Set
+	Items     []int
 	Count     int
-	UpdatedAt int
+}
+
+type hashTreeNode struct {
+	Items     []int
+	Count     int
 }
 
 // Apriori algorithm, mining frequent item sets out of an array of transactions
 // minSupport: set the lower limit under which the items' sets are considerated not frequent
-func apriori(transactions []mapset.Set, minSupport float64) (large []candidate) {
-	// Initial empty frontier set to start the first iteration
-	frontier := []candidate{
-		candidate{
-			Items: mapset.NewThreadUnsafeSet(),
-			Count: len(transactions),
-		},
-	}
+func apriori(transactions []mapset.Set, minSupport float64) ([]candidate) {
+  large := map[int]map[string]int{
+    1: apriori_first_pass(transactions),
+  }
 
-	run := 0
-	for len(frontier) > 0 {
-		candidates := map[string]candidate{}
+  for k := 2; len(large[k - 1]) > 0; k++ {
+    candidates := apriori_gen(large[k - 1])
+    fmt.Printf("%+v\n", large[k - 1])
+  }
 
-		run++
-		fmt.Printf("Pass #%d with %d frontier sets\n", run, len(frontier))
-
-		for k, t := range transactions {
-			for _, f := range frontier {
-				if t.IsSuperset(f.Items) {
-					for _, c := range extend(f, t, candidates) {
-						candidates = upsert(candidates, c, k)
-					}
-				}
-			}
-		}
-
-		frontier = []candidate{}
-		for _, c := range candidates {
-			if float64(c.Count)/float64(len(transactions)) >= minSupport {
-				large = append(large, c)
-
-				// TODO: As extend should be recursive this should be more complex than just checking for the minSupport.
-				frontier = append(frontier, c)
-			}
-		}
-	}
-
-	return
+  return []candidate{}
 }
 
-// Update the count of the set to insert if found and not updated during the current iteration or insert it
-func upsert(large map[string]candidate, c mapset.Set, position int) map[string]candidate {
-	keyArr := []string{}
-	for _, s := range c.ToSlice() {
-		if str, ok := s.(string); ok {
-			keyArr = append(keyArr, str)
-		}
-	}
-	sort.Strings(keyArr)
-	key := strings.Join(keyArr, "")
+func apriori_first_pass(transactions []mapset.Set) (large map[string]int) {
+  minSupport := 100
 
-	data, ok := large[key]
-	if !ok {
-		// Not found ? insert with count = 1
-		large[key] = candidate{Items: c, Count: 1, UpdatedAt: position}
-	} else {
-		if data.UpdatedAt < position {
-			element := large[key]
-			element.Count++
-			element.UpdatedAt = position
-			large[key] = element
-		}
-	}
+  for _, t := range transactions {
+    for _, i := range t.ToSlice() {
+        large[1][i.(string)]++
+    }
+  }
 
-	return large
+  for k, v := range large {
+    if v < minSupport {
+      delete(large, k)
+    }
+  }
 }
 
-// Extend the candidate set with items from the transaction
-// TODO: Normally uses statistical independence assumption to extend further
-func extend(c candidate, transaction mapset.Set, candidates map[string]candidate) (extended []mapset.Set) {
-	for _, i := range transaction.Difference(c.Items).ToSlice() {
-		extendedItems := mapset.NewThreadUnsafeSetFromSlice(c.Items.ToSlice())
-		extendedItems.Add(i)
-		extended = append(extended, extendedItems)
-	}
-
-	return
+func apriori_gen(map[string]int) {
+  apriori_join()
+  apriori_prune()
 }

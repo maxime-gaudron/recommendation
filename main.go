@@ -46,12 +46,6 @@ func main() {
 
 		fmt.Printf("Found %d frequent itemsets\n", len(frequentItemSets))
 		fmt.Printf("Generating association rules\n")
-
-		rules := generateRules(frequentItemSets, len(transactions), c.Float64("minConfidence"))
-
-		fmt.Printf("Generated %d rules\n", len(rules))
-
-		toCsv(c.String("outputFile"), rules)
 	}
 
 	app.Run(os.Args)
